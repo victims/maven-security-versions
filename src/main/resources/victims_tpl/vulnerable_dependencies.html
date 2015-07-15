@@ -1,0 +1,47 @@
+<html>
+<head>
+<title></title>
+<link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        @media print {
+        .library {page-break-after: always;}
+        }    </style>
+</head>
+<body>
+<div class="container">
+
+<#list libraries as l>
+    <div class="library">
+    <h1 class="page-header">${l.artifact.artifactId} ${l.artifact.version}</h1>
+
+    <h3>Maven artifact</h3>
+    <table class="table table-bordered table-striped">
+        <tr><td>GroupId</td> <td>${l.artifact.groupId}</td></tr>
+        <tr><td>ArtifactId</td> <td>${l.artifact.artifactId}</td></tr>
+        <tr><td>Version</td> <td>${l.artifact.version}</td></tr>
+        <tr><td>Source</td> <td>
+        <#list l.hierarchyChain?reverse as a>
+            <code>${a.groupId}:${a.artifactId}</code>
+            <#if a_has_next>
+                =&gt;
+            </#if>
+        </#list>
+        </td></tr>
+    </table>
+
+    <h3>Vulnerabilities</h3>
+    <#list l.vulnerabilities as v>
+        <h4>CVE-${v.cveId} ${v.title}</h4>
+
+        <#if v.description??><blockquote>
+            ${v.description}
+        </blockquote></#if>
+
+    </#list>
+    </div>
+</#list>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+#IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+#Build directories
+bin/
+build/
+target/
