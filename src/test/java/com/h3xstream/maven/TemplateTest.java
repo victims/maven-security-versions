@@ -13,7 +13,7 @@ public class TemplateTest {
 
         SecurityVersionsCheck mojo = new SecurityVersionsCheck();
 
-        mojo.exportToHtml(VulnerabilityFixtures.libraryList,System.out);
+        mojo.exportToHtml(VulnerabilityFixtures.projects,System.out);
 
         //TODO Some assertion on the result
     }

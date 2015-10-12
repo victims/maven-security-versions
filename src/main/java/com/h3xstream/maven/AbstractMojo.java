@@ -7,7 +7,6 @@ import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.path.PathTranslator;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
@@ -131,7 +130,7 @@ public class AbstractMojo extends DisplayDependencyUpdatesMojo {
     /**
      * The Maven Session.
      *
-     * @parameter property="session"
+     * @parameter expression="session"
      * @required
      * @readonly
      * @since 1.0-alpha-1

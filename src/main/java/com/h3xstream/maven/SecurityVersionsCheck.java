@@ -1,6 +1,6 @@
 package com.h3xstream.maven;
 
-import com.h3xstream.maven.tpl.ReportModel;
+import com.h3xstream.maven.tpl.ProjectSummary;
 import com.h3xstream.maven.tpl.VulnerableLibrary;
 import com.h3xstream.maven.victims.CveVulnerability;
 import com.h3xstream.maven.victims.VictimsDbLoader;
@@ -8,23 +8,12 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
-import org.apache.maven.artifact.versioning.ArtifactVersion;
-import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.artifact.filter.ScopeArtifactFilter;
 import org.apache.maven.shared.dependency.graph.DependencyGraphBuilderException;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
-import org.codehaus.mojo.versions.DisplayDependencyUpdatesMojo;
-import org.codehaus.mojo.versions.api.ArtifactVersions;
-import org.codehaus.mojo.versions.api.UpdateScope;
-import org.codehaus.mojo.versions.utils.DependencyComparator;
-import org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,14 +27,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  *
  * @goal check
  * @requiresProject true
  * @requiresDirectInvocation false
+ * @aggregator true
  */
 public class SecurityVersionsCheck extends AbstractMojo {
 
@@ -55,7 +43,17 @@ public class SecurityVersionsCheck extends AbstractMojo {
     private Boolean updateRepository = Boolean.FALSE;
     private VictimsDbLoader victimDb;
 
+    private static int counter = 0;
+
     public void execute() throws MojoExecutionException, MojoFailureException {
+
+        MavenProject rootProject = getProject();
+
+        if(!rootProject.isExecutionRoot()) {
+            return;
+        }
+
+        getLog().info("Counter : " + counter++);
         //Only execute this mojo once, on the very last project in the reactor
         if(reactorProjects != null) {
             final int size = reactorProjects.size();
@@ -65,40 +63,51 @@ public class SecurityVersionsCheck extends AbstractMojo {
             }
         }
 
-        MavenProject project = getProject();
+        List<ProjectSummary> projectSummaries = new ArrayList<ProjectSummary>();
 
-        victimDb = new VictimsDbLoader(getLog(),wagonManager);
-        victimDb.loadRepository();
+        for(MavenProject project : (List<MavenProject>) rootProject.getCollectedProjects()) {
+            getLog().info("Analyzing the dependencies for "+project.getGroupId()+":"+project.getArtifactId());
 
-        DependencyNode rootNode;
-        try {
-            rootNode = dependencyGraphBuilder.buildDependencyGraph( project, createResolvingArtifactFilter() );
+            victimDb = new VictimsDbLoader(getLog(), wagonManager);
+            victimDb.loadRepository();
 
-        } catch (DependencyGraphBuilderException e) {
-            getLog().error("Unable to build the complete dependency graph.");
-            throw new MojoFailureException("Unable to build the complete dependency graph.",e);
+            DependencyNode rootNode;
+            try {
+                rootNode = dependencyGraphBuilder.buildDependencyGraph(project, createResolvingArtifactFilter());
+
+            } catch (DependencyGraphBuilderException e) {
+                getLog().error("Unable to build the complete dependency graph.");
+                throw new MojoFailureException("Unable to build the complete dependency graph.", e);
+            }
+
+            //Collect the vulnerabilities
+            List<VulnerableLibrary> vulnerableLibraries = new ArrayList<VulnerableLibrary>();
+            visitNode(rootNode, 0, vulnerableLibraries);
+
+            //Output the vulnerabilities found
+            displayCommandLine(vulnerableLibraries);
+
+            if(vulnerableLibraries.size() > 0) {
+                projectSummaries.add(new ProjectSummary(project, vulnerableLibraries));
+            }
+
         }
 
-        //Collect the vulnerabilities
-        List<VulnerableLibrary> vulnerableLibraries = new ArrayList<VulnerableLibrary>();
-        visitNode(rootNode,0,vulnerableLibraries);
-
-        displayCommandLine(vulnerableLibraries);
 
         try {
             File targetDir = new File(getProject().getBuild().getDirectory());
-            if(!targetDir.exists()) targetDir.mkdir();
+            if (!targetDir.exists()) targetDir.mkdir();
 
-            FileOutputStream out = new FileOutputStream(new File(getProject().getBuild().getDirectory(), "vulnerable_dependencies.html"));
+            FileOutputStream out = new FileOutputStream(new File(targetDir, "vulnerable_dependencies.html"));
 
-            exportToHtml(vulnerableLibraries, out);
+            exportToHtml(projectSummaries, out);
 
         } catch (FileNotFoundException e) {
-            throw new MojoFailureException("Unable to write the HTML report.",e);
+            throw new MojoFailureException("Unable to write the HTML report.", e);
         } catch (IOException e) {
-            throw new MojoFailureException("Unable to write the HTML report.",e);
+            throw new MojoFailureException("Unable to write the HTML report.", e);
         } catch (TemplateException e) {
-            throw new MojoFailureException("Unable generate the HTML report using the template.",e);
+            throw new MojoFailureException("Unable generate the HTML report using the template.", e);
         }
 
     }
@@ -140,20 +149,16 @@ public class SecurityVersionsCheck extends AbstractMojo {
         }
     }
 
-    public void exportToHtml(List<VulnerableLibrary> libraries,OutputStream out) throws IOException, TemplateException {
+    public void exportToHtml(List<ProjectSummary> projects,OutputStream out) throws IOException, TemplateException {
         PrintWriter pw = new PrintWriter(out);
-        /*
-        MustacheFactory mf = new DefaultMustacheFactory();
-        Mustache mustache = mf.compile("victims_tpl/vulnerable_dependencies.html");
-        mustache.execute(pw, new ReportModel(vulnerabilities)).flush();
-        */
 
+        //FreeMarker Template
         Configuration cfg = new Configuration();
         cfg.setClassForTemplateLoading(this.getClass(), "/");
         Template tpl = cfg.getTemplate("/victims_tpl/vulnerable_dependencies.html");
 
         Map<String,Object> ctxData = new HashMap<String,Object>();
-        ctxData.put("libraries",libraries);
+        ctxData.put("projects",projects);
 
         tpl.process(ctxData, new OutputStreamWriter(out));
     }
@@ -171,6 +176,14 @@ public class SecurityVersionsCheck extends AbstractMojo {
                 return true;
             }
         };
+    }
+
+    /**
+     * Print summary at end
+     */
+    protected void printSummary()
+    {
+        getLog().info("TEST");
     }
 
 }
