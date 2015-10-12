@@ -37,11 +37,11 @@ border-style: hidden;
 
 <#list projects as p>
 
-    <h2 class="page-header"><i class="fa fa-folder-open-o"></i> ${p.project.artifactId}</h2>
+    <h2 class="page-header" title="${p.project.groupId}:${p.project.artifactId}"><i class="fa fa-folder-open-o"></i> ${p.project.artifactId}</h2>
 
     <#list p.libraries as l>
         <div class="library">
-        <h2 class="page-header"><i class="fa fa-file-code-o"></i> ${l.artifact.artifactId} ${l.artifact.version}</h2>
+        <h2 class="page-header" title="${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}"><i class="fa fa-file-code-o"></i> ${l.artifact.artifactId} ${l.artifact.version}</h2>
 
         <h3>Maven artifact</h3>
         <table class="table table-bordered table-striped">

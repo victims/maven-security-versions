@@ -67,11 +67,13 @@ public class VersionUtil {
             try{
                 d1 = Double.parseDouble(l1.get(i));
             }catch(IndexOutOfBoundsException e){
+            }catch(NumberFormatException e){
             }
 
             try{
                 d2 = Double.parseDouble(l2.get(i));
             }catch(IndexOutOfBoundsException e){
+            }catch(NumberFormatException e){
             }
 
             if (d1 != null && d2 != null) {

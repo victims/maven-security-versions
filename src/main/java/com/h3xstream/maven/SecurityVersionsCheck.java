@@ -16,13 +16,16 @@ import org.apache.maven.shared.dependency.graph.DependencyGraphBuilderException;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -98,7 +101,13 @@ public class SecurityVersionsCheck extends AbstractMojo {
             File targetDir = new File(getProject().getBuild().getDirectory());
             if (!targetDir.exists()) targetDir.mkdir();
 
-            FileOutputStream out = new FileOutputStream(new File(targetDir, "vulnerable_dependencies.html"));
+            new File(targetDir, "/dependencies/").mkdir();
+
+            FileOutputStream out = new FileOutputStream(new File(targetDir, "/dependencies/index.html"));
+
+            for(String file : Arrays.asList("bootstrap.min.css","font-awesome.min.css","fontawesome-webfont.ttf")) {
+                copy(getClass().getResourceAsStream("/victims_tpl/"+file), new FileOutputStream(new File(targetDir, "/dependencies/"+file)));
+            }
 
             exportToHtml(projectSummaries, out);
 
@@ -178,12 +187,21 @@ public class SecurityVersionsCheck extends AbstractMojo {
         };
     }
 
-    /**
-     * Print summary at end
-     */
-    protected void printSummary()
-    {
-        getLog().info("TEST");
-    }
 
+    public void copy(InputStream in, OutputStream out) throws IOException {
+        try {
+            try {
+                // Transfer bytes from in to out
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+            } finally {
+                out.close();
+            }
+        } finally {
+            in.close();
+        }
+    }
 }
