@@ -8,12 +8,16 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.manager.WagonConfigurationException;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.dependency.graph.DependencyGraphBuilderException;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
+import org.apache.maven.wagon.ConnectionException;
+import org.apache.maven.wagon.UnsupportedProtocolException;
+import org.apache.maven.wagon.authentication.AuthenticationException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,9 +48,8 @@ public class SecurityVersionsCheck extends AbstractMojo {
      * @parameter property="sec.updateRepo" defaultValue="false"
      */
     private Boolean updateRepository = Boolean.FALSE;
-    private VictimsDbLoader victimDb;
-
-    private static int counter = 0;
+    private static VictimsDbLoader victimDb;
+    private static Object victimDbSync = new Object();
 
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -56,7 +59,6 @@ public class SecurityVersionsCheck extends AbstractMojo {
             return;
         }
 
-        getLog().info("Counter : " + counter++);
         //Only execute this mojo once, on the very last project in the reactor
         if(reactorProjects != null) {
             final int size = reactorProjects.size();
@@ -68,32 +70,48 @@ public class SecurityVersionsCheck extends AbstractMojo {
 
         List<ProjectSummary> projectSummaries = new ArrayList<ProjectSummary>();
 
-        for(MavenProject project : (List<MavenProject>) rootProject.getCollectedProjects()) {
-            getLog().info("Analyzing the dependencies for "+project.getGroupId()+":"+project.getArtifactId());
+        try {
+            for(MavenProject project : (List<MavenProject>) rootProject.getCollectedProjects()) {
+                getLog().info("Analyzing the dependencies for " + project.getGroupId() + ":" + project.getArtifactId());
 
-            victimDb = new VictimsDbLoader(getLog(), wagonManager);
-            victimDb.loadRepository();
+                synchronized (victimDbSync) {
+                    if (victimDb == null) {
+                        victimDb = new VictimsDbLoader(getLog(), wagonManager);
+                        victimDb.loadRepository();
+                    }
+                }
 
-            DependencyNode rootNode;
-            try {
-                rootNode = dependencyGraphBuilder.buildDependencyGraph(project, createResolvingArtifactFilter());
 
-            } catch (DependencyGraphBuilderException e) {
-                getLog().error("Unable to build the complete dependency graph.");
-                throw new MojoFailureException("Unable to build the complete dependency graph.", e);
+                DependencyNode rootNode;
+                try {
+                    rootNode = dependencyGraphBuilder.buildDependencyGraph(project, createResolvingArtifactFilter());
+
+                } catch (DependencyGraphBuilderException e) {
+                    getLog().error("Unable to build the complete dependency graph.");
+                    throw new MojoFailureException("Unable to build the complete dependency graph.", e);
+                }
+
+                //Collect the vulnerabilities
+                List<VulnerableLibrary> vulnerableLibraries = new ArrayList<VulnerableLibrary>();
+                visitNode(rootNode, 0, vulnerableLibraries);
+
+                //Output the vulnerabilities found
+                displayCommandLine(vulnerableLibraries);
+
+                if(vulnerableLibraries.size() > 0) {
+                    projectSummaries.add(new ProjectSummary(project, vulnerableLibraries));
+                }
+
             }
 
-            //Collect the vulnerabilities
-            List<VulnerableLibrary> vulnerableLibraries = new ArrayList<VulnerableLibrary>();
-            visitNode(rootNode, 0, vulnerableLibraries);
-
-            //Output the vulnerabilities found
-            displayCommandLine(vulnerableLibraries);
-
-            if(vulnerableLibraries.size() > 0) {
-                projectSummaries.add(new ProjectSummary(project, vulnerableLibraries));
-            }
-
+        } catch (WagonConfigurationException e) {
+            throw new MojoFailureException("Unable load the repository.", e);
+        } catch (UnsupportedProtocolException e) {
+            throw new MojoFailureException("Unable load the repository.", e);
+        } catch (ConnectionException e) {
+            throw new MojoFailureException("Unable load the repository.", e);
+        } catch (AuthenticationException e) {
+            throw new MojoFailureException("Unable load the repository.", e);
         }
 
 
