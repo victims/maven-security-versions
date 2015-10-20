@@ -9,7 +9,6 @@
 position: relative;
 padding: 15px;
 margin: 0 -15px 15px;
-
 border-style: solid;
 border-color: #ddd;
 border-width: 1px;
@@ -17,30 +16,65 @@ border-radius: 8px;
 -webkit-box-shadow: none;
 box-shadow: none;
 }
+
 h2.page-header {
 margin-top: 10px;
 margin-bottom: 10px;
 }
 
+h1.page-header {
+font-weight: bold;
+}
+
+.cvss_unknown{background-color: #FFFFFF;}
+.cvss_low{background-color: #FFFF66;}
+.cvss_medium{background-color: #FF9933;}
+.cvss_high{background-color: #FF5050;}
+.cvss_critical{background-color: #CC3300;}
 
 @media print {
-.library {
+.library, .summary {
 page-break-after: always;
 border-style: hidden;
 }
+
+.separator {display:hidden}
 }
     </style>
 </head>
 <body>
 <div class="container">
 
+<div class="summary">
+<h1 class="page-header">Summary</h1>
+
+
+<table class="table table-bordered table-striped">
+<#list projects as p>
+
+    <tr><th colspan="2"><i class="fa fa-folder-open-o"></i>
+        <a href="#${p.project.groupId}:${p.project.artifactId}" title="${p.project.groupId}:${p.project.artifactId}">${p.project.artifactId}</a>
+    </th></tr>
+
+    <#list p.libraries as l>
+        <tr><td><a href="#${p.project.groupId}:${p.project.artifactId}_${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}">${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}</a></td>
+            <td><#list l.vulnerabilities as v>CVE-${v.cveId}<#if l_has_next>,</#if> </#list></td></tr>
+    </#list>
+</#list>
+</table>
+<br/>
+<hr class="separator"/>
+</div>
+
 
 <#list projects as p>
 
-    <h2 class="page-header" title="${p.project.groupId}:${p.project.artifactId}"><i class="fa fa-folder-open-o"></i> ${p.project.artifactId}</h2>
+    <a name="${p.project.groupId}:${p.project.artifactId}"></a>
+    <h1 class="page-header" title="${p.project.groupId}:${p.project.artifactId}"><i class="fa fa-folder-open-o"></i> ${p.project.artifactId}</h1>
 
     <#list p.libraries as l>
         <div class="library">
+        <a name="${p.project.groupId}:${p.project.artifactId}_${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}"></a>
         <h2 class="page-header" title="${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}"><i class="fa fa-file-code-o"></i> ${l.artifact.artifactId} ${l.artifact.version}</h2>
 
         <h3>Maven artifact</h3>
@@ -59,15 +93,35 @@ border-style: hidden;
         </table>
 
         <h3>Vulnerabilities</h3>
+            <ul>
         <#list l.vulnerabilities as v>
-            <div class="vulnerability">
+            <li><div class="vulnerability">
             <h4><b>CVE-${v.cveId} ${v.title}</b></h4>
 
             <#if v.description??><blockquote>
-                ${v.description}
+                ${v.description}<br/><br/>
+                <table class="table table-bordered" style="width:500px">
+                <tr>
+                    <th>CVSS Score </th>
+                    <td class="cvss_${v.cvssLevel}" style="font-weight:bold;text-align:center">${v.cvssScore}</td>
+                    <td style="text-align:center"><a href="https://nvd.nist.gov/cvss.cfm?version=2&name=CVE-${v.cveId}">Details</a></td>
+                </tr>
+                </table>
+
+                <#if v.references??>
+                    <b>Reference(s):</b>
+                    <ul>
+                    <#list v.references as r>
+                        <li><a href="${r}">${r}</a></li>
+                    </#list>
+                    </ul>
+                </#if>
             </blockquote></#if>
-            </div>
+
+
+            </div></li>
         </#list>
+            </ul>
         </div>
     </#list>
 </#list>
