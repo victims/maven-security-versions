@@ -71,7 +71,11 @@ public class SecurityVersionsCheck extends AbstractMojo {
         List<ProjectSummary> projectSummaries = new ArrayList<ProjectSummary>();
 
         try {
-            for(MavenProject project : (List<MavenProject>) rootProject.getCollectedProjects()) {
+            //The plugin will scan will include all submodules + the current projects.
+            List<MavenProject> allProjects = new ArrayList<MavenProject>(rootProject.getCollectedProjects());
+            allProjects.add(rootProject);
+
+            for(MavenProject project : allProjects) {
                 getLog().info("Analyzing the dependencies for " + project.getGroupId() + ":" + project.getArtifactId());
 
                 synchronized (victimDbSync) {

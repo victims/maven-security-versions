@@ -58,7 +58,9 @@ border-style: hidden;
 
     <#list p.libraries as l>
         <tr><td><a href="#${p.project.groupId}:${p.project.artifactId}_${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}">${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}</a></td>
-            <td><#list l.vulnerabilities as v>CVE-${v.cveId}<#if l_has_next>,</#if> </#list></td></tr>
+            <td><#list l.vulnerabilities as v>
+                <a href="#${p.project.groupId}:${p.project.artifactId}_${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}:CVE-${v.cveId}">CVE-${v.cveId}</a><#if v_has_next>,</#if>
+            </#list></td></tr>
     </#list>
 </#list>
 </table>
@@ -96,14 +98,16 @@ border-style: hidden;
             <ul>
         <#list l.vulnerabilities as v>
             <li><div class="vulnerability">
+            <a name="${p.project.groupId}:${p.project.artifactId}_${l.artifact.groupId}:${l.artifact.artifactId}:${l.artifact.version}:CVE-${v.cveId}"></a>
             <h4><b>CVE-${v.cveId} ${v.title}</b></h4>
 
-            <#if v.description??><blockquote>
-                ${v.description}<br/><br/>
+            <blockquote>
+                <#if v.description??>${v.description}<br/><br/></#if>
+
                 <table class="table table-bordered" style="width:500px">
                 <tr>
                     <th>CVSS Score </th>
-                    <td class="cvss_${v.cvssLevel}" style="font-weight:bold;text-align:center">${v.cvssScore}</td>
+                    <td class="cvss_${v.cvssLevel}" style="font-weight:bold;text-align:center"><#if v.cvssScore??>${v.cvssScore}<#else>&#63;</#if></td>
                     <td style="text-align:center"><a href="https://nvd.nist.gov/cvss.cfm?version=2&name=CVE-${v.cveId}">Details</a></td>
                 </tr>
                 </table>
@@ -116,7 +120,7 @@ border-style: hidden;
                     </#list>
                     </ul>
                 </#if>
-            </blockquote></#if>
+            </blockquote>
 
 
             </div></li>
