@@ -42,5 +42,4 @@ The plugin is based on **[versions-maven-plugin](http://www.mojohaus.org/version
 ## Licenses
 
  - [versions-maven-plugin](http://www.mojohaus.org/versions-maven-plugin/) : [Apache Software License](http://www.mojohaus.org/versions-maven-plugin/license.html)
- - [victims-cve-db](https://github.com/victims/victims-cve-db/) : [Affero General Public License](https://github.com/victims/victims-cve-db/blob/master/LICENSE)
-
+ - [victims-cve-db](https://github.com/victims/victims-cve-db/) : [Creative Commons](https://creativecommons.org/licenses/by-sa/4.0/) / [Affero General Public License](https://github.com/victims/victims-cve-db/blob/master/LICENSE)
