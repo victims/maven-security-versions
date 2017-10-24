@@ -1,4 +1,4 @@
-# Maven Security Versions [![Build Status](https://secure.travis-ci.org/h3xstream/maven-security-versions.png?branch=master)](http://travis-ci.org/h3xstream/maven-security-versions) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.h3xstream.maven/security-versions/badge.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.h3xstream.maven%22%20a%3A%22security-versions%22)
+# Maven Security Versions [![Build Status](https://secure.travis-ci.org/GoSecure/maven-security-versions.png?branch=master)](http://travis-ci.org/GoSecure/maven-security-versions) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.h3xstream.maven/security-versions/badge.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.h3xstream.maven%22%20a%3A%22security-versions%22)
 
 Identify vulnerable libraries in Maven dependencies.
 
@@ -7,7 +7,7 @@ The plugin is based on **[versions-maven-plugin](http://www.mojohaus.org/version
 
 ## Screenshot
 
-![Animate screenshot](https://raw.githubusercontent.com/h3xstream/maven-security-versions/master/demos/screenshots/screen1.gif)
+![Animate screenshot](https://raw.githubusercontent.com/GoSecure/maven-security-versions/master/demos/screenshots/screen1.gif)
 
 ## Usage
 
