@@ -5,13 +5,9 @@ Identify vulnerable libraries in Maven dependencies.
 The plugin is based on **[versions-maven-plugin](http://www.mojohaus.org/versions-maven-plugin/)**. It use the victims database has source for CVEs and Maven artifact mapping.
 
 
-## Screenshot
-
-![Animate screenshot](https://raw.githubusercontent.com/GoSecure/maven-security-versions/master/demos/screenshots/screen1.gif)
-
 ## Usage
 
-    > mvn com.h3xstream.maven:security-versions:check
+    > mvn com.redhat.victims.maven:security-versions:check
     [INFO] Scanning for projects...
     [INFO]
     [INFO] ------------------------------------------------------------------------
