@@ -1,11 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.h3xstream.maven</groupId>
+    <groupId>com.redhat.victims.maven</groupId>
     <artifactId>security-versions</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.4-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Security Versions Verifier</name>
@@ -178,22 +176,23 @@
     Ref: https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide#SonatypeOSSMavenRepositoryUsageGuide-6.CentralSyncRequirement
     -->
 
-    <url>https://github.com/h3xstream/maven-security-versions</url>
+    <url>https://github.com/victims/maven-security-versions</url>
 
     <licenses>
         <license>
             <name>GNU Lesser General Public License</name>
             <url>http://www.gnu.org/copyleft/lesser.html</url>
             <distribution>repo</distribution>
-            <comments></comments>
+            <comments />
         </license>
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/h3xstream/maven-security-versions.git</connection>
-        <developerConnection>scm:git:git@github.com:h3xstream/maven-security-versions.git</developerConnection>
-        <url>git@github.com:h3xstream/maven-security-versions.git</url>
-    </scm>
+        <connection>scm:git:https://github.com/victims/maven-security-versions.git</connection>
+        <developerConnection>scm:git:git@github.com:victims/maven-security-versions.git</developerConnection>
+        <url>git@github.com:victims/maven-security-versions.git</url>
+      <tag>HEAD</tag>
+  </scm>
 
     <developers>
         <developer>
