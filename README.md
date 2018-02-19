@@ -1,4 +1,4 @@
-# Maven Security Versions [![Build Status](https://secure.travis-ci.org/GoSecure/maven-security-versions.png?branch=master)](http://travis-ci.org/GoSecure/maven-security-versions) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.h3xstream.maven/security-versions/badge.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.h3xstream.maven%22%20a%3A%22security-versions%22)
+# Maven Security Versions [![Build Status](https://travis-ci.org/victims/maven-security-versions.svg?branch=master)](https://travis-ci.org/victims/maven-security-versions) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.h3xstream.maven/security-versions/badge.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.h3xstream.maven%22%20a%3A%22security-versions%22)
 
 Identify vulnerable libraries in Maven dependencies.
 
