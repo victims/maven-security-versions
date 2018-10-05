@@ -151,7 +151,6 @@ public class SecurityVersionsCheck extends AbstractMojo {
             for (VulnerableLibrary vuln : projectVulnerableLibraries) {
                 for (CveVulnerability cveVuln : vuln.getVulnerabilities()) {
                     try {
-                        System.out.println();
                         if (Double.parseDouble(cveVuln.getCvssScore()) >= failBuildOnCVSS) {
                             Artifact a = vuln.getArtifact();
                             throw new MojoFailureException(a.getGroupId() + ":" + a.getArtifactId() + " is vulnerable to CVE-" + cveVuln.getCveId()
