@@ -48,6 +48,10 @@ public class SecurityVersionsCheck extends AbstractMojo {
      * @parameter property="sec.updateRepo" defaultValue="false"
      */
     private Boolean updateRepository = Boolean.FALSE;
+    /**
+     * @parameter property="sec.failBuildOnCVSS" defaultValue="11"
+     */
+    private int failBuildOnCVSS = 11;
     private static VictimsDbLoader victimDb;
     private static Object victimDbSync = new Object();
 
@@ -69,6 +73,7 @@ public class SecurityVersionsCheck extends AbstractMojo {
         }
 
         List<ProjectSummary> projectSummaries = new ArrayList<ProjectSummary>();
+        List<VulnerableLibrary> projectVulnerableLibraries = new ArrayList<VulnerableLibrary>();
 
         try {
             //The plugin will scan will include all submodules + the current projects.
@@ -103,6 +108,7 @@ public class SecurityVersionsCheck extends AbstractMojo {
                 displayCommandLine(vulnerableLibraries);
 
                 if(vulnerableLibraries.size() > 0) {
+                    projectVulnerableLibraries.addAll(vulnerableLibraries);
                     projectSummaries.add(new ProjectSummary(project, vulnerableLibraries));
                 }
 
@@ -141,6 +147,21 @@ public class SecurityVersionsCheck extends AbstractMojo {
             throw new MojoFailureException("Unable generate the HTML report using the template.", e);
         }
 
+        if (failBuildOnCVSS <= 10) {
+            for (VulnerableLibrary vuln : projectVulnerableLibraries) {
+                for (CveVulnerability cveVuln : vuln.getVulnerabilities()) {
+                    try {
+                        if (Double.parseDouble(cveVuln.getCvssScore()) >= failBuildOnCVSS) {
+                            Artifact a = vuln.getArtifact();
+                            throw new MojoFailureException(a.getGroupId() + ":" + a.getArtifactId() + " is vulnerable to CVE-" + cveVuln.getCveId()
+                                + ". CVSS score " + cveVuln.getCvssScore() + " is equal or greater than " + failBuildOnCVSS);
+                        }
+                    } catch (RuntimeException e) {
+                        getLog().warn("Unknown CVSS score: " + cveVuln.getCvssScore(), e);
+                    }
+                }
+            }
+        }
     }
 
     private void visitNode(DependencyNode baseNode,int level,List<VulnerableLibrary> vulnerabilities) {
